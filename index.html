@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Movie Recap AI</title>
 
   <style>
@@ -20,19 +21,19 @@
     .container {
       width: 90%;
       max-width: 900px;
-      margin: 50px auto;
+      margin: 40px auto;
     }
 
     h1 {
       text-align: center;
-      font-size: 40px;
+      font-size: 38px;
       margin-bottom: 10px;
     }
 
     .subtitle {
       text-align: center;
       color: #9ca3af;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
 
     .box {
@@ -46,48 +47,47 @@
       display: block;
       margin-bottom: 10px;
       font-size: 18px;
+      font-weight: bold;
     }
 
-    input,
-    textarea {
+    input[type="file"] {
       width: 100%;
       padding: 15px;
-      border: none;
-      border-radius: 10px;
       background: #374151;
       color: white;
-      font-size: 16px;
+      border-radius: 10px;
       margin-bottom: 20px;
-      outline: none;
     }
 
-    textarea {
-      min-height: 220px;
-      resize: vertical;
-    }
-
-    button {
+    video {
       width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
-      background: #6366f1;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
+      max-height: 500px;
+      background: black;
+      border-radius: 12px;
+      display: none;
+      margin-top: 15px;
     }
 
-    button:hover {
-      background: #4f46e5;
-    }
-
-    .result {
-      min-height: 150px;
+    .info {
       background: #111827;
-      padding: 20px;
+      padding: 15px;
       border-radius: 10px;
-      color: #d1d5db;
+      margin-top: 15px;
       line-height: 1.8;
+      display: none;
+    }
+
+    .success {
+      color: #4ade80;
+    }
+
+    .error {
+      color: #f87171;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -99,38 +99,29 @@
     <h1>🎬 Movie Recap AI</h1>
 
     <p class="subtitle">
-      Movie ဇာတ်လမ်းကို Recap Script အဖြစ် ပြောင်းလဲရန်
+      Movie ကို Recap Video အဖြစ် ပြောင်းလဲရန်
     </p>
 
     <div class="box">
 
-      <label>🎬 Movie Name</label>
+      <label>🎥 Movie Upload</label>
 
       <input
-        type="text"
-        id="movieName"
-        placeholder="Movie နာမည်ထည့်ပါ..."
+        type="file"
+        id="movieFile"
+        accept="video/mp4"
       >
 
-      <label>📝 Movie Story / Transcript</label>
+      <div class="status" id="status">
+        MP4 Movie ကို ရွေးပါ။
+      </div>
 
-      <textarea
-        id="movieText"
-        placeholder="Movie ရဲ့ စာသား ဒါမှမဟုတ် Transcript ကို ဒီနေရာမှာထည့်ပါ..."
-      ></textarea>
+      <video id="videoPreview" controls></video>
 
-      <button onclick="generateRecap()">
-        🤖 Generate Movie Recap
-      </button>
-
-    </div>
-
-    <div class="box">
-
-      <label>📋 Recap Script</label>
-
-      <div class="result" id="result">
-        ဒီနေရာမှာ AI ထုတ်ပေးတဲ့ Movie Recap Script ပေါ်လာမယ်။
+      <div class="info" id="videoInfo">
+        <div>📁 File: <span id="fileName"></span></div>
+        <div>⏱️ Duration: <span id="duration"></span></div>
+        <div>📦 Size: <span id="fileSize"></span></div>
       </div>
 
     </div>
@@ -139,30 +130,86 @@
 
   <script>
 
-    function generateRecap() {
+    const movieFile = document.getElementById("movieFile");
+    const videoPreview = document.getElementById("videoPreview");
+    const videoInfo = document.getElementById("videoInfo");
 
-      const movieName =
-        document.getElementById("movieName").value;
+    const status = document.getElementById("status");
+    const fileName = document.getElementById("fileName");
+    const duration = document.getElementById("duration");
+    const fileSize = document.getElementById("fileSize");
 
-      const movieText =
-        document.getElementById("movieText").value;
+    const MAX_DURATION = 5 * 60;
 
-      const result =
-        document.getElementById("result");
+    movieFile.addEventListener("change", function () {
 
-      if (movieName === "" || movieText === "") {
+      const file = this.files[0];
 
-        result.innerHTML =
-          "⚠️ Movie Name နဲ့ Movie Story / Transcript ကို အရင်ထည့်ပါ။";
+      if (!file) {
+        return;
+      }
+
+      if (file.type !== "video/mp4") {
+
+        status.innerHTML =
+          '<span class="error">❌ MP4 Video ပဲ တင်နိုင်ပါတယ်။</span>';
+
+        movieFile.value = "";
+
+        videoPreview.style.display = "none";
+        videoInfo.style.display = "none";
 
         return;
       }
 
-      result.innerHTML =
-        "<strong>" + movieName + "</strong><br><br>" +
-        "ဒီနေရာမှာ နောက်ပိုင်း AI နဲ့ Movie Recap Script ကို generate လုပ်ပေးမယ်။";
+      const videoURL = URL.createObjectURL(file);
 
-    }
+      videoPreview.src = videoURL;
+      videoPreview.style.display = "block";
+
+      fileName.textContent = file.name;
+
+      fileSize.textContent =
+        (file.size / (1024 * 1024)).toFixed(2) + " MB";
+
+      videoPreview.onloadedmetadata = function () {
+
+        const videoDuration = videoPreview.duration;
+
+        const minutes =
+          Math.floor(videoDuration / 60);
+
+        const seconds =
+          Math.floor(videoDuration % 60);
+
+        duration.textContent =
+          minutes + " min " +
+          seconds + " sec";
+
+        videoInfo.style.display = "block";
+
+        if (videoDuration > MAX_DURATION) {
+
+          status.innerHTML =
+            '<span class="error">❌ Video က 5 မိနစ်ကျော်နေပါတယ်။ အများဆုံး 5 မိနစ်ပဲ တင်နိုင်ပါတယ်။</span>';
+
+          movieFile.value = "";
+
+          videoPreview.pause();
+          videoPreview.removeAttribute("src");
+          videoPreview.load();
+
+          videoPreview.style.display = "none";
+          videoInfo.style.display = "none";
+
+          return;
+        }
+
+        status.innerHTML =
+          '<span class="success">✅ Movie Upload အောင်မြင်ပါတယ်။ 5 မိနစ်အတွင်းရှိပါတယ်။</span>';
+      };
+
+    });
 
   </script>
 

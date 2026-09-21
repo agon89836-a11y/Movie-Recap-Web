@@ -23,6 +23,10 @@ dependencies = [
     "Pillow>=10.3.0",
     "tqdm>=4.66.6",
     "tenacity>=9.0.0",
+    "python-telegram-bot>=22.0",
+    "pymysql>=1.1.0",
+    "extra-streamlit-components>=0.1.71",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]

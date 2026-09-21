@@ -1,4 +1,15 @@
 # 核心依赖
+# AI 服务依赖
+openai>=1.77.0
+google-generativeai>=0.8.5
+azure-cognitiveservices-speech>=1.37.0
+tencentcloud-sdk-python>=3.0.1200
+dashscope>=1.24.6
+# Web App 依赖
+python-telegram-bot>=22.0
+pymysql>=1.1.0
+extra-streamlit-components>=0.1.71
+python-dotenv>=1.0.0
 requests>=2.32.0
 moviepy==2.1.1
 edge-tts==7.2.7
